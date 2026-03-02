@@ -50,19 +50,36 @@ export default function Home() {
     setShowMenu(false)
   }
 
-  const loadGame = (playerName: string) => {
-    const players = JSON.parse(localStorage.getItem('harvestDaysPlayers') || '{}')
-    const savedGame = players[playerName]
-    if (savedGame) {
-      setGameState(savedGame)
-      setShowMenu(false)
+  const loadGame = async (playerName: string) => {
+    try {
+      const response = await fetch(`/api/game/load?name=${encodeURIComponent(playerName)}`)
+      if (response.ok) {
+        const { gameData } = await response.json()
+        setGameState(gameData)
+        setShowMenu(false)
+      } else {
+        console.error('Failed to load game')
+        alert('Failed to load saved game. Please try again.')
+      }
+    } catch (error) {
+      console.error('Load game error:', error)
+      alert('Failed to load saved game. Please try again.')
     }
   }
 
-  const saveGame = (state: GameState) => {
-    const players = JSON.parse(localStorage.getItem('harvestDaysPlayers') || '{}')
-    players[state.name] = state
-    localStorage.setItem('harvestDaysPlayers', JSON.stringify(players))
+  const saveGame = async (state: GameState) => {
+    try {
+      const response = await fetch('/api/game/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(state)
+      })
+      if (!response.ok) {
+        console.error('Failed to save game')
+      }
+    } catch (error) {
+      console.error('Save game error:', error)
+    }
   }
 
   const updateGameState = (updates: Partial<GameState> | ((prev: GameState) => Partial<GameState>)) => {

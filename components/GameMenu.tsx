@@ -17,10 +17,20 @@ export default function GameMenu({ onStartNew, onLoadGame }: GameMenuProps) {
     }
   }
 
-  const handleLoadClick = () => {
-    const players = JSON.parse(localStorage.getItem('harvestDaysPlayers') || '{}')
-    setSavedGames(Object.keys(players))
-    setShowInput('load')
+  const handleLoadClick = async () => {
+    try {
+      const response = await fetch('/api/game/list')
+      if (response.ok) {
+        const { players } = await response.json()
+        setSavedGames(players)
+        setShowInput('load')
+      } else {
+        alert('Failed to load saved games')
+      }
+    } catch (error) {
+      console.error('Failed to load saved games:', error)
+      alert('Failed to load saved games')
+    }
   }
 
   const handleSelectSave = (name: string) => {
